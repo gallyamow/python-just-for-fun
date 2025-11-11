@@ -1,12 +1,13 @@
 import numpy as np
-from pytest_benchmark.plugin import benchmark
 
 
 def test_bench_loop(benchmark):
     result = benchmark(loop)
 
+
 def test_bench_vector(benchmark):
     result = benchmark(vector)
+
 
 def vector():
     arr = np.arange(1, 1000)
