@@ -1,8 +1,9 @@
 from abc import abstractmethod, ABC
+from functools import singledispatchmethod
 
 class Animal:
     # Поля класса: тут важен знак "="
-    LEGS_COUNT = 4 # uppercase указывает что это константа (соглашение)
+    LEGS_COUNT = 4  # uppercase указывает что это константа (соглашение)
     default_color = "red"
 
     # Поле экземпляра с аннотацией типа, знака "=" нет
@@ -27,8 +28,18 @@ class Animal:
     def name(self):
         print("called deleter of name")
 
-    def func(self):
+    # Перегрузки методов - нет. Но можно реализовать через аннотации @singledispatchmethod
+    @singledispatchmethod
+    def method(self, arg):
         print("run " + str(type(self)))
+
+    @method.register
+    def _(self, a: int):
+        print("run " + str(type(self)))
+
+    @method.register
+    def _(self, arg: str):
+        print("str:", arg)
 
 
 class Dog(Animal):
