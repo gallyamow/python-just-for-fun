@@ -63,6 +63,19 @@ async def long_cancelable_operation():
         print("Correct: Time to cancel.")
         raise  # важно пробросить дальше
 
+async def download_files_with_semaphore(urls):
+    sem = asyncio.Semaphore(1)
+    wrapped_tasks = [download_file_with_semaphore(sem, u) for u in urls]
+
+    return await asyncio.gather(*wrapped_tasks)
+
+async def download_file_with_semaphore(sem, url):
+    async with sem:
+        print(f"Start downloading {url}...")
+        await asyncio.sleep(0.1)
+        print(f"Finished downloading {url}!")
+        return f"{url} downloaded"
+
 
 async def usage_wait_for():
     """
@@ -82,6 +95,7 @@ async def usage_wait_for():
 
 
 def main():
+    print("ASYNC_RUN")
     c = async_sum(1, 2)
     print(c)  # <coroutine object async_sum at 0x100b58dc0>
 
@@ -92,6 +106,7 @@ def main():
     sum_all = asyncio.run(async_sum_all([1, 2], [3, 4]))
     print(f'Sum all: {sum_all}')
 
+    print("GATHER")
     # gather
     tasks = [
         download_file("https://example1.com"),
@@ -100,6 +115,16 @@ def main():
     ]
     asyncio.run(download_files(tasks))
 
+    print("SEMAPHORE")
+    # gather + semaphore
+    urls = [
+        "https://example1.com",
+        "https://example2.org",
+        "https://example3.org"
+    ]
+    asyncio.run(download_files_with_semaphore(urls))
+
+    print("FUTURE")
     # future
     asyncio.run(usage_future())
 
