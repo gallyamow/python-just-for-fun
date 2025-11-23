@@ -1,5 +1,9 @@
 import asyncio
 
+"""
+Coroutine - async функция. При вызове не выполняется, а возвращает объект. Чтобы она отработала нужен await.
+Await можно запустить только из другой async-функции, поэтому для запуска из обычной нужен asyncio.run().
+"""
 
 async def async_sum(x, y):
     await asyncio.sleep(0.1)
