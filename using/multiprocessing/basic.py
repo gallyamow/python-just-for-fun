@@ -1,7 +1,7 @@
 """
 Модуль multiprocessing позволяет запускать процессы, каждый со своей памятью.
 В отличие от потоков (threading), процессы не разделяют память, что обходит GIL (Global Interpreter Lock).
-Полезно для CPU-bound задач (тяжёлые вычисления), когда многопоточность в Python не ускоряет.
+Полезно для CPU-bound задач, когда многопоточность в Python не ускоряет.
 
 ## Основные объекты:
 
@@ -19,7 +19,6 @@ Pool	пул процессов для параллельного выполне�
 import multiprocessing
 import os
 import time
-
 
 def worker(name):
     print(f"Worker {name}, PID: {os.getpid()}")
@@ -57,15 +56,6 @@ def simple():
     p1.join()
     p2.join()
 
-
-def pool():
-    with multiprocessing.Pool(2) as p:
-        results = p.map(op, ["1", "2", "3", "4"])
-
-    # Результаты возвращаются после выполнения всех задач.
-    print("Results:", results)
-
-
 def communication():
     q = multiprocessing.Queue()
     p1 = multiprocessing.Process(target=producer, args=(q,))
@@ -81,11 +71,6 @@ if __name__ == '__main__':
     # Просто 2 процесса
     print("SIMPLE")
     simple()
-    print()
-
-    # Пул процессов
-    print("POOL")
-    pool()
     print()
 
     # Коммуникация процессов
