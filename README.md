@@ -17,4 +17,6 @@ deactivate
 
 ```sh
 pytest ./test_default_value.py
+pytest ./test_default_value.py -s # shows print
+pytest ./test_default_value.py -vvv # high verbosity level
 ```
