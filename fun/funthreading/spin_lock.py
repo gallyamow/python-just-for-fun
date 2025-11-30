@@ -1,11 +1,13 @@
 import time
 
-
 class SpinLock:
+    """
+    Аналог threading.Lock реализованный на цикле (spin).
+    """
     def __init__(self):
         self.__locked = False
 
-    def acquire(self, blocking=True, timeout=-1):
+    def acquire(self, blocking=True, timeout=-1) -> bool:
         start = time.time()
 
         # Проверку делаем в цикле, если захватим то будет ровно одна итерация

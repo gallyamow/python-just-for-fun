@@ -1,9 +1,8 @@
 import threading
 import time
 
-from .spinlock import SpinLock as FunLock
+from .spin_lock import SpinLock as FunLock
 from threading import Lock as NativeLock
-
 
 def test_counter_of_fun():
     lock = FunLock()
@@ -83,7 +82,7 @@ def timeout(lock):
 
         time.sleep(0.2)
 
-        # time to acquire
+        # greedy_worker lock should've been released, so it's time to acquire
         acquired = lock.acquire(timeout=0.2)
         assert acquired == True
 
