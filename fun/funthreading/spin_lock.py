@@ -1,11 +1,14 @@
 import time
 
+
 class SpinLock:
     """
-    Аналог threading.Lock реализованный на цикле (spin).
+    Аналог threading.Lock, реализованный через активное ожидание (spinlock).
     """
+    __slots__ = '__locked'
+
     def __init__(self):
-        self.__locked = False
+        self.__locked: bool = False
 
     def acquire(self, blocking=True, timeout=-1) -> bool:
         start = time.time()
@@ -27,8 +30,7 @@ class SpinLock:
             if timeout != -1 and (time.time() - start) >= timeout:
                 return False
 
-            # Крутим цикл
-            time.sleep(0.01)
+            time.sleep(0.001)
 
     def release(self):
         if not self.__locked:
