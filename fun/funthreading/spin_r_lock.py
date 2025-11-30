@@ -82,3 +82,25 @@ class SpinRLock:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.release()
+
+    # Безусловно освобождает блокировку возвращая состояние.
+    # (специальный protected метод для использования в Condition)
+    def _release_save(self) -> tuple[int, int]:
+        cnt = self.__lock_count
+        if cnt == 0:
+            raise RuntimeError('cannot release un-acquired lock')
+        owner = self.__owner
+
+        self.__locked = False
+        self.__owner = None
+        self.__lock_count = 0
+
+        return cnt, owner
+
+    # Захватывает блокировку устанавливая переданное состояние.
+    # (специальный protected метод для использования в Condition)
+    def _acquire_restore(self, state: tuple[int, int]):
+        cnt, owner = state
+        self.acquire()
+        self.__lock_count = cnt
+        self.__owner = owner

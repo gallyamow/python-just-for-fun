@@ -5,7 +5,7 @@ from .condition import Condition as FunCondition
 from threading import Condition as NativeCondition
 
 
-def te2st_counter_of_fun():
+def test_counter_of_fun():
     condition = FunCondition()
     counter(condition)
 
@@ -23,7 +23,7 @@ def counter(condition):
     # - Булевый флаг может хранить только два состояния: True/False, поэтому если producer быстро делает несколько
     #   notify подряд, consumer обработает только один сигнал.
     events = 0
-    res= 0
+    res = 0
     ready: bool = False
 
     def producer():
