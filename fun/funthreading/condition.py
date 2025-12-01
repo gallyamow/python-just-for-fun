@@ -71,8 +71,6 @@ class Condition:
     def notify_all(self):
         self.notify(len(self.__waiters))
 
-
-
     def __enter__(self):
         self.__lock.acquire()
         return self
