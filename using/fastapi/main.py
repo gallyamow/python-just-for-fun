@@ -1,9 +1,11 @@
 import datetime
 from typing import Union, List
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
+from fastapi.templating import Jinja2Templates
 
 """
 FastAPI - простой, быстрый, современный web-framework.
@@ -48,6 +50,7 @@ http://127.0.0.1:8000/docs
 http://127.0.0.1:8000/redoc
 """
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 
 class TodoItem(BaseModel):
@@ -100,15 +103,27 @@ class TodoItem(BaseModel):
 storage: dict[UUID, TodoItem] = {}
 
 
-@app.get("/")
-def index() -> List[TodoItem]:
-    return list(storage.values())
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request) -> List[TodoItem]:
+    """
+    Теперь возвращаем ответ в виде html.
+    """
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "todos": list(storage.values())}
+    )
 
 
-@app.post("/todos")
-def create_item(item: TodoItem) -> TodoItem:
+@app.post("/create")
+def create_item(title: str = Form(...), description: str = Form(None)):
+    item = TodoItem(
+        item_id=uuid4(),
+        title=title,
+        description=description,
+        created_at=datetime.datetime.now()
+    )
     storage[item.item_id] = item
-    return item
+    return RedirectResponse(url="/", status_code=303)
 
 
 @app.get("/items/{item_id}")
