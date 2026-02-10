@@ -1,14 +1,55 @@
-import pika
 import json
-import time
+import threading
+
+import pika
+
+
+def consumer_worker():
+    conn = pika.BlockingConnection(
+        pika.ConnectionParameters(host="localhost")
+    )
+    channel = conn.channel()
+
+    # build exchange
+    exchange_name = 'some_exchange'
+    channel.exchange_declare(
+        exchange=exchange_name,
+        exchange_type="fanout",
+        durable=True
+    )
+
+    # build queue
+    queue_name = "some_queue"
+    channel.queue_declare(queue=queue_name, durable=True)
+
+    # bind queue to channel
+    channel.queue_bind(
+        exchange=exchange_name,
+        queue=queue_name
+    )
+
+    # prefetch_count - сколько unacked сообщений можно держать «в работе»
+    # prefetch_size - тоже самое, но ограничивает размером
+    channel.basic_qos(prefetch_count=1)
+
+    # bind callback
+    channel.basic_consume(
+        queue=queue_name,
+        on_message_callback=callback)
+
+    try:
+        while not stop_event.is_set():
+            # ручной способ consume, чтобы не использовать start_consuming - который блокирующий
+            conn.process_data_events(time_limit=1)
+    finally:
+        channel.close()
+        conn.close()
 
 
 def callback(ch, method, properties, body):
     try:
         data = json.loads(body)
-        print('received', data)
-
-        time.sleep(2)
+        print(f'{threading.current_thread().name} received', data)
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
@@ -20,39 +61,22 @@ def callback(ch, method, properties, body):
             requeue=False
         )
 
-# connect
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host="localhost")
-)
-channel = connection.channel()
 
-# build exchange
-exchange_name = 'some_exchange'
-channel.exchange_declare(
-    exchange=exchange_name,
-    exchange_type="fanout",
-    durable=True
-)
+# без daemon=True, так как сами ждем join
+stop_event = threading.Event()
 
-# build queue
-queue_name = "some_queue"
-channel.queue_declare(queue=queue_name, durable=True)
+# @idiomatic: simple way to create threads
+threads = [threading.Thread(target=consumer_worker, name=f"consumer-{i}") for i in range(10)]
+for t in threads:
+    t.start()
 
-# bind queue to channel
-channel.queue_bind(
-    exchange=exchange_name,
-    queue=queue_name
-)
+# @idiomatic: graceful shutdown + ctrl+c handling + ctrl+d (сигнал ввода больше не будет)
+try:
+    input("Press Enter to exit\n")
+except (KeyboardInterrupt, EOFError):
+    print("\nStopping...")
 
-channel.basic_qos(prefetch_count=1)
+stop_event.set()
 
-# bind callback
-channel.basic_consume(
-    queue=queue_name,
-    on_message_callback=callback
-)
-
-print("Consumer waiting for messages...")
-
-# start
-channel.start_consuming()
+for t in threads:
+    t.join()

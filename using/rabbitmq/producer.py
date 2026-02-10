@@ -1,17 +1,18 @@
-import random
 import threading
 
+from datetime import datetime
 import pika
 import json
 import time
 
 
 def publish_worker():
-    # Внутри worker: Connection и Channel должны использоваться в одном потоке
-    connection = pika.BlockingConnection(
+    # The primary rule for using Pika with threading is that you must have a separate BlockingConnection
+    # instance within each thread, created in that thread
+    conn = pika.BlockingConnection(
         pika.ConnectionParameters(host='localhost')
     )
-    channel = connection.channel()
+    channel = conn.channel()
 
     # build exchange
     exchange_name = 'some_exchange'
@@ -26,7 +27,8 @@ def publish_worker():
         while not stop_event.is_set():
             message = {
                 "event_id": i,
-                "type": "SOME_TYPE",
+                "type": "time",
+                "val": datetime.now().isoformat()
             }
 
             # publish to exchange
@@ -40,17 +42,23 @@ def publish_worker():
             )
 
             print("Sent:", message)
-            time.sleep(0.5)
+            # time.sleep(0.1)
             i += 1
     finally:
-        connection.close()
+        channel.close()
+        conn.close()
 
 
+# @idiomatic: graceful shutdown (даже несмотря на отсутствие wait)
 stop_event = threading.Event()
 t = threading.Thread(target=publish_worker)
 t.start()
 
-input('Press Enter to exit')
+# @idiomatic: graceful shutdown + ctrl+c handling + ctrl+d (сигнал ввода больше не будет)
+try:
+    input("Press Enter to exit\n")
+except (KeyboardInterrupt, EOFError):
+    print("\nStopping...")
 
 stop_event.set()
 t.join()
