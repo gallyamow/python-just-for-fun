@@ -6,7 +6,12 @@ from rabbit.channel import get_channel
 from rabbit.topology import setup_topology
 import pika
 
-
+# Гарантии доставки:
+# 1) at most once - если используется auto-ack и consumer падает после получения либо сеть после получения
+# 2) at least once - если manual ack - basic.ack (чаще всего на проде). Если consumer падает - то возвращается в очередь.
+# Но, может прийти и несколько раз => consumer должен быть идемпотентным.
+#
+# Итого: RabbitMQ чаще всего используют с at least once доставкой через manual acknowledgements.
 def publish_worker():
     conn, chan = get_channel()
     setup_topology(chan)
