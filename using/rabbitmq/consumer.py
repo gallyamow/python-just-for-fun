@@ -103,11 +103,16 @@ for t in threads:
 
 # @idiomatic: graceful shutdown + ctrl+c handling + ctrl+d (сигнал ввода больше не будет)
 try:
-    input("Press Enter to exit\n")
+    # Пока есть живые дочерние потоки
+    while any(t.is_alive() for t in threads):
+        for t in threads:
+            # Блокирует главный поток на 0.5 сек в ожидании завершения дочернего. Если пользователь нажимает Ctrl+C во
+            # время этого таймаута, Python генерирует KeyboardInterrupt прямо в главном потоке.
+            # (используем этот подход вместо input())
+            t.join(timeout=0.5)
 except (KeyboardInterrupt, EOFError):
     print("\nStopping...")
-
-stop_event.set()
-
-for t in threads:
-    t.join()
+    stop_event.set()
+    for t in threads:
+        # Здесь уже ждем без таймаута, так как точно знаем что завершаемся
+        t.join()

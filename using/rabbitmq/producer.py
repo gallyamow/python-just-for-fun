@@ -42,11 +42,8 @@ stop_event = threading.Event()
 t = threading.Thread(target=publish_worker)
 t.start()
 
-# @idiomatic: graceful shutdown + ctrl+c handling + ctrl+d (сигнал ввода больше не будет)
-try:
-    input("Press Enter to exit\n")
-except (KeyboardInterrupt, EOFError):
-    print("\nStopping...")
+# Здесь просто ожидание Enter для примера
+input("Press Enter to exit\n")
 
 stop_event.set()
 t.join()
