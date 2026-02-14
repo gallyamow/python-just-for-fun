@@ -32,7 +32,9 @@ def setup_topology(chan: pika.adapters.blocking_connection.BlockingChannel):
         queue="main.queue",
         durable=True,
         arguments={
-            # Повторы реализованы через указание  dead-letter-exchange у queue.
+            # Повторы реализованы через указание dead-letter-exchange у queue, ttl - тоже настраивается у queue.
+            # (это и логично, один exchange может писать в несколько queue - fanout)
+            #
             # Туда отправляются dead-letter это когда: basic_nack(requeue=False) or basic_reject(requeue=False) or по TTL or очередь переполнена и есть max-length.
             # dead-letter - оправляем в обменник retry.exchange c routing key = "retry"
             # routing-key тут нужен, потому что этот обменник direct и он будет пересылать в queue равный по названию этому routing kye.
