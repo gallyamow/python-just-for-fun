@@ -1,26 +1,15 @@
-import threading
-
-from datetime import datetime
-import pika
 import json
+import threading
 import time
+from datetime import datetime
+from rabbit.channel import get_channel
+from rabbit.topology import setup_topology
+import pika
 
 
 def publish_worker():
-    # The primary rule for using Pika with threading is that you must have a separate BlockingConnection
-    # instance within each thread, created in that thread
-    conn = pika.BlockingConnection(
-        pika.ConnectionParameters(host='localhost')
-    )
-    channel = conn.channel()
-
-    # build exchange
-    exchange_name = 'some_exchange'
-    channel.exchange_declare(
-        exchange=exchange_name,
-        exchange_type='fanout',
-        durable=True
-    )
+    conn, chan = get_channel()
+    setup_topology(chan)
 
     i = 0
     try:
@@ -31,9 +20,8 @@ def publish_worker():
                 "val": datetime.now().isoformat()
             }
 
-            # publish to exchange
-            channel.basic_publish(
-                exchange=exchange_name,
+            chan.basic_publish(
+                exchange="main.exchange",
                 routing_key="",  # для fanout не используется
                 body=json.dumps(message),
                 properties=pika.BasicProperties(
@@ -42,10 +30,10 @@ def publish_worker():
             )
 
             print("Sent:", message)
-            # time.sleep(0.1)
             i += 1
+            time.sleep(0.1)
     finally:
-        channel.close()
+        chan.close()
         conn.close()
 
 

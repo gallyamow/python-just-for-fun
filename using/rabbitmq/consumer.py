@@ -1,65 +1,96 @@
 import json
 import threading
+import random
 
-import pika
+from rabbit.channel import get_channel
+from rabbit.topology import setup_topology
+
+MAX_RETRY_COUNT = 2
 
 
 def consumer_worker():
-    conn = pika.BlockingConnection(
-        pika.ConnectionParameters(host="localhost")
-    )
-    channel = conn.channel()
-
-    # build exchange
-    exchange_name = 'some_exchange'
-    channel.exchange_declare(
-        exchange=exchange_name,
-        exchange_type="fanout",
-        durable=True
-    )
-
-    # build queue
-    queue_name = "some_queue"
-    channel.queue_declare(queue=queue_name, durable=True)
-
-    # bind queue to channel
-    channel.queue_bind(
-        exchange=exchange_name,
-        queue=queue_name
-    )
+    conn, chan = get_channel()
+    setup_topology(chan)
 
     # prefetch_count - сколько unacked сообщений можно держать «в работе»
     # prefetch_size - тоже самое, но ограничивает размером
-    channel.basic_qos(prefetch_count=1)
+    chan.basic_qos(prefetch_count=1)
 
     # bind callback
-    channel.basic_consume(
-        queue=queue_name,
-        on_message_callback=callback)
+    chan.basic_consume(
+        queue="main.queue",
+        on_message_callback=callback
+    )
 
     try:
         while not stop_event.is_set():
             # ручной способ consume, чтобы не использовать start_consuming - который блокирующий
             conn.process_data_events(time_limit=1)
     finally:
-        channel.close()
+        chan.close()
         conn.close()
 
 
 def callback(ch, method, properties, body):
+    retry_count = get_retry_count(properties)
+
+    payload = json.loads(body)
+
+    if retry_count >= MAX_RETRY_COUNT:
+        # При превышении количества повторов, публикуем в parking-обменник
+        ch.basic_publish(
+            exchange="parking.exchange",
+            routing_key="parking",  # direct
+            body=body,
+            properties=properties
+        )
+
+        # Очень важно делать ack, иначе сообщение останется в DLE
+        ch.basic_ack(method.delivery_tag)
+
+        print(f'{threading.current_thread().name} parked after {retry_count} retries')
+
+        return
+
     try:
-        data = json.loads(body)
-        print(f'{threading.current_thread().name} received', data)
+        print(f'{threading.current_thread().name} received after {retry_count} retries', payload)
+
+        handle_event(payload)
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
-        print("error:", e)
+        print(f"{threading.current_thread().name} failed, retry {retry_count}", e)
 
-        # nack без возврата в очередь
+        # nack без возврата в очередь (важно для dead-letter обработки)
+        # (повтор через nack + requeue=true - самый простой способ, но неуправляемый)
         ch.basic_nack(
             delivery_tag=method.delivery_tag,
             requeue=False
         )
+
+
+def handle_event(payload) -> bool:
+    if random.random() < 0.3:
+        raise Exception('something gone wrong')
+    return True
+
+
+def get_retry_count(properties) -> int:
+    """
+    Возвращает количество повторных доставок из заголовка x-death.
+    Если заголовка нет — возвращает 0.
+    """
+    headers = getattr(properties, 'headers', None)
+    if not headers:
+        return 0
+
+    x_death = headers.get('x-death')
+    if not x_death or not isinstance(x_death, list):
+        return 0
+
+    # Берем первую запись в x-death, что соответствует последнему реальному циклу доставки.
+    first_death = x_death[0]
+    return first_death.get('count', 0)
 
 
 # без daemon=True, так как сами ждем join
