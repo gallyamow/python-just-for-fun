@@ -1,118 +1,94 @@
 import json
 import threading
 import random
+from confluent_kafka import Consumer
+import json
 
-from rabbit.channel import get_channel
-from rabbit.topology import setup_topology
-
-MAX_RETRY_COUNT = 2
+conf = {
+    "bootstrap.servers": "localhost:9092",
+    "group.id": "events-group",
+    "auto.offset.reset": "earliest",
+    # обязательно отключаем autocommit
+    "enable.auto.commit": False,
+    # Увеличил лимиты. Но правильный способ: pool в одном потоке, затем обработка результата в worker pool
+    "max.poll.interval.ms": 300000
+}
 
 
 def consumer_worker():
-    conn, chan = get_channel()
-    setup_topology(chan)
-
-    # prefetch_count - сколько unacked сообщений можно держать «в работе»
-    # prefetch_size - тоже самое, но ограничивает размером
-    chan.basic_qos(prefetch_count=1)
-
-    # bind callback
-    chan.basic_consume(
-        queue="main.queue",
-        on_message_callback=callback
+    consumer = Consumer(conf)
+    consumer.subscribe(
+        ["events"],
+        # on_revoke - нужен потому что многопоточный:
+        # consumer может потерять partition
+        # offset ещё не committed
+        # другой consumer начнёт читать с прошлого offset
+        # будут дубли
+        on_revoke=on_revoke
     )
 
     try:
         while not stop_event.is_set():
+            # 1) Забирает сообщения из Kafka
+            # 2) Отправляет heartbeat в consumer group
+            # 3) Обрабатывает rebalance
+            # 4)⃣ Возвращает одно сообщение или None
+            # 5)️ Поддерживает offset-менеджмент
+            # Ждем не более 1 секунды
+            msg = consumer.poll(1.0)
             # ручной способ consume, чтобы не использовать start_consuming - который блокирующий
-            conn.process_data_events(time_limit=1)
+            if msg is None:
+                continue
+            if msg.error():
+                continue
+
+            event = json.loads(msg.value().decode())
+
+            try:
+                # long processing без защиты
+                # Если handle_event() > max.poll.interval.ms => Kafka выкинет consumer из group и будет перебалансировка
+                handle_event(event)
+
+                # commit ПОСЛЕ успешной обработки
+                consumer.commit(msg)
+            except Exception as e:
+                # retry / DLQ
+                print("error:", e)
     finally:
-        chan.close()
-        conn.close()
-
-
-def callback(ch, method, properties, body):
-    retry_count = get_retry_count(properties)
-
-    payload = json.loads(body)
-
-    if retry_count >= MAX_RETRY_COUNT:
-        # При превышении количества повторов, публикуем в parking-обменник
-        ch.basic_publish(
-            exchange="parking.exchange",
-            routing_key="parking",  # direct
-            body=body,
-            properties=properties
-        )
-
-        # Очень важно делать ack, иначе сообщение останется в DLE
-        ch.basic_ack(method.delivery_tag)
-
-        print(f'{threading.current_thread().name} parked after {retry_count} retries')
-
-        return
-
-    try:
-        print(f'{threading.current_thread().name} received after {retry_count} retries', payload)
-
-        handle_event(payload)
-
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-    except Exception as e:
-        print(f"{threading.current_thread().name} failed, retry {retry_count}", e)
-
-        # nack без возврата в очередь (важно для dead-letter обработки)
-        # (повтор через nack + requeue=true - самый простой способ, но неуправляемый)
-        ch.basic_nack(
-            delivery_tag=method.delivery_tag,
-            requeue=False
-        )
+        consumer.close()
 
 
 def handle_event(payload) -> bool:
     if random.random() < 0.3:
         raise Exception('something gone wrong')
+    print(payload)
     return True
 
 
-def get_retry_count(properties) -> int:
-    """
-    Возвращает количество повторных доставок из заголовка x-death.
-    Если заголовка нет — возвращает 0.
-    """
-    headers = getattr(properties, 'headers', None)
-    if not headers:
-        return 0
-
-    x_death = headers.get('x-death')
-    if not x_death or not isinstance(x_death, list):
-        return 0
-
-    # Берем первую запись в x-death, что соответствует последнему реальному циклу доставки.
-    first_death = x_death[0]
-    return first_death.get('count', 0)
+def on_revoke(consumer, partitions):
+    consumer.commit()
 
 
 # без daemon=True, так как сами ждем join
 stop_event = threading.Event()
 
-# @idiomatic: simple way to create threads
-threads = [threading.Thread(target=consumer_worker, name=f"consumer-{i}") for i in range(10)]
-for t in threads:
-    t.start()
+# 1 поток делает poll
+# 10 потоков ≠ 10x throughput
+# максимум = число partition
+# если partitions = 3, то 7 потоков будут idle
+t = threading.Thread(target=consumer_worker, name=f"consumer-main")
+t.start()
 
 # @idiomatic: graceful shutdown + ctrl+c handling + ctrl+d (сигнал ввода больше не будет)
 try:
     # Пока есть живые дочерние потоки
-    while any(t.is_alive() for t in threads):
-        for t in threads:
-            # Блокирует главный поток на 0.5 сек в ожидании завершения дочернего. Если пользователь нажимает Ctrl+C во
-            # время этого таймаута, Python генерирует KeyboardInterrupt прямо в главном потоке.
-            # (используем этот подход вместо input())
-            t.join(timeout=0.5)
+    while t.is_alive():
+        # Блокирует главный поток на 0.5 сек в ожидании завершения дочернего. Если пользователь нажимает Ctrl+C во
+        # время этого таймаута, Python генерирует KeyboardInterrupt прямо в главном потоке.
+        # (используем этот подход вместо input())
+        t.join(timeout=0.5)
 except (KeyboardInterrupt, EOFError):
     print("\nStopping...")
     stop_event.set()
-    for t in threads:
-        # Здесь уже ждем без таймаута, так как точно знаем что завершаемся
-        t.join()
+    # Здесь уже ждем без таймаута, так как точно знаем что завершаемся
+    t.join()

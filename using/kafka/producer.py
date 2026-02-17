@@ -38,11 +38,11 @@ def publish_worker():
             )
 
             # Для:
-            # Обрабатывает delivery report callbacks (delivery_report)
-            # Обрабатывает retry
-            # Освобождает внутренние буферы
+            # 1) Обрабатывает delivery report callbacks (delivery_report)
+            # 2) Обрабатывает retry
+            # 3) Освобождает внутренние буферы
             # flush() тоже делает poll, но только в конце
-            producer.pool(0)
+            producer.poll(0)
 
             print("Sent:", message)
             i += 1
