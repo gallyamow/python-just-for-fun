@@ -93,49 +93,49 @@ def gen_with_finally(resource: dict[str, str]):
     Пример использования finally для освобождения ресурсов.
     Альтернатива: реализация with
     """
-    resource['status'] = 'busy'
+    resource["status"] = "busy"
 
     try:
         yield 1
         yield 2
         yield 3
     finally:
-        resource['status'] = 'free'
+        resource["status"] = "free"
 
 
 def test_gen_with_finally_exhausted():
-    resource = {'status': 'free'}
+    resource = {"status": "free"}
     it = gen_with_finally(resource)
 
     # @idiomatic: generator is lazy
     # пока не было итераций, то функция и не вызывалась
-    assert resource['status'] == 'free'
+    assert resource["status"] == "free"
     next(it)
 
-    assert resource['status'] == 'busy'
+    assert resource["status"] == "busy"
 
     # когда генератор исчерпан
     for _ in it:
         pass
 
-    assert resource['status'] == 'free'
+    assert resource["status"] == "free"
 
 
 def test_gen_with_finally_closed():
-    resource = {'status': 'free'}
+    resource = {"status": "free"}
     it = gen_with_finally(resource)
 
     # @idiomatic: generator is lazy
     # пока не было итераций, то функция и не вызывалась
-    assert resource['status'] == 'free'
+    assert resource["status"] == "free"
     next(it)
 
-    assert resource['status'] == 'busy'
+    assert resource["status"] == "busy"
 
     # просто закрыли
     it.close()
 
-    assert resource['status'] == 'free'
+    assert resource["status"] == "free"
 
 
 @contextmanager
@@ -144,16 +144,16 @@ def context_managed_generator(resource: dict[str, str]):
     Пример как сделать контекстный менеджер, который автоматически захватывает и освобождает ресурс.
     На самом деле пример неудачный, так как может обрабатывать только 1 yield.
     """
-    resource['status'] = 'busy'
+    resource["status"] = "busy"
 
     try:
         yield 1
     finally:
-        resource['status'] = 'free'
+        resource["status"] = "free"
 
 
 def test_context_managed_generator():
-    resource = {'status': 'free'}
+    resource = {"status": "free"}
     it = context_managed_generator(resource)
 
     with it:
@@ -161,9 +161,9 @@ def test_context_managed_generator():
         # collections.deque(it, maxlen=0)
         # or can use list if memory is not a problem
         # list(it)
-        assert resource['status'] == 'busy'
+        assert resource["status"] == "busy"
 
-    assert resource['status'] == 'free'
+    assert resource["status"] == "free"
 
 
 # @idiomatic: using list[], dict[] instead of typing.List, typing.Dict
@@ -189,4 +189,4 @@ def test_receive():
     it.send(3)
     it.close()
 
-    assert res == [1,2,3]
+    assert res == [1, 2, 3]

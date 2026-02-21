@@ -76,7 +76,9 @@ def test_invalid_acquire_parameters():
     """Тест невалидных параметров acquire"""
     sem = Semaphore(1)
 
-    with pytest.raises(ValueError, match="can't specify timeout for non-blocking acquire"):
+    with pytest.raises(
+        ValueError, match="can't specify timeout for non-blocking acquire"
+    ):
         sem.acquire(blocking=False, timeout=1)
 
 
@@ -95,7 +97,7 @@ def test_thread_wake_up():
 
     def worker():
         sem.acquire()
-        res.append('acquired')
+        res.append("acquired")
 
     t = threading.Thread(target=worker)
     t.start()
@@ -104,7 +106,8 @@ def test_thread_wake_up():
     sem.release()
     t.join()
 
-    assert res == ['acquired']
+    assert res == ["acquired"]
+
 
 def test_thread_wake_up_n():
     sem = Semaphore(3)
@@ -112,7 +115,7 @@ def test_thread_wake_up_n():
 
     def worker(worker_id: int):
         sem.acquire()
-        res.append(f'worker-{worker_id} acquired')
+        res.append(f"worker-{worker_id} acquired")
 
     threads = [threading.Thread(target=worker, args=(i,)) for i in range(3)]
     for t in threads:
@@ -124,4 +127,4 @@ def test_thread_wake_up_n():
     for t in threads:
         t.join()
 
-    assert res == [f'worker-{i} acquired' for i in range(3)]
+    assert res == [f"worker-{i} acquired" for i in range(3)]

@@ -28,7 +28,9 @@ def main():
     b = A("BB")
     print()
     m = a.instance_function
-    print(m)  # <bound method Animal.instance_function of <__main__.Animal object at 0x102e95df0>>
+    print(
+        m
+    )  # <bound method Animal.instance_function of <__main__.Animal object at 0x102e95df0>>
     print("result", m())
     print()
 
@@ -46,5 +48,5 @@ def main():
     print()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

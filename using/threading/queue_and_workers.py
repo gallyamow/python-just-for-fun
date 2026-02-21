@@ -54,7 +54,7 @@ def fib(n: int) -> int:
 # Альтернативные варианты построения queue + worker:
 # 1) библиотека celery и хранение в брокере, возможность работы на разных серверах
 # 2) asyncio
-if __name__ == '__main__':
+if __name__ == "__main__":
     task_queue = queue.Queue()
 
     workers = []

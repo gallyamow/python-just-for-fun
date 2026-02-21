@@ -17,10 +17,7 @@ def consumer_worker():
     chan.basic_qos(prefetch_count=1)
 
     # bind callback
-    chan.basic_consume(
-        queue="main.queue",
-        on_message_callback=callback
-    )
+    chan.basic_consume(queue="main.queue", on_message_callback=callback)
 
     try:
         while not stop_event.is_set():
@@ -42,18 +39,21 @@ def callback(ch, method, properties, body):
             exchange="parking.exchange",
             routing_key="parking",  # direct
             body=body,
-            properties=properties
+            properties=properties,
         )
 
         # Очень важно делать ack, иначе сообщение останется в DLE
         ch.basic_ack(method.delivery_tag)
 
-        print(f'{threading.current_thread().name} parked after {retry_count} retries')
+        print(f"{threading.current_thread().name} parked after {retry_count} retries")
 
         return
 
     try:
-        print(f'{threading.current_thread().name} received after {retry_count} retries', payload)
+        print(
+            f"{threading.current_thread().name} received after {retry_count} retries",
+            payload,
+        )
 
         handle_event(payload)
 
@@ -63,15 +63,12 @@ def callback(ch, method, properties, body):
 
         # nack без возврата в очередь (важно для dead-letter обработки)
         # (повтор через nack + requeue=true - самый простой способ, но неуправляемый)
-        ch.basic_nack(
-            delivery_tag=method.delivery_tag,
-            requeue=False
-        )
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
 def handle_event(payload) -> bool:
     if random.random() < 0.3:
-        raise Exception('something gone wrong')
+        raise Exception("something gone wrong")
     return True
 
 
@@ -80,24 +77,26 @@ def get_retry_count(properties) -> int:
     Возвращает количество повторных доставок из заголовка x-death.
     Если заголовка нет — возвращает 0.
     """
-    headers = getattr(properties, 'headers', None)
+    headers = getattr(properties, "headers", None)
     if not headers:
         return 0
 
-    x_death = headers.get('x-death')
+    x_death = headers.get("x-death")
     if not x_death or not isinstance(x_death, list):
         return 0
 
     # Берем первую запись в x-death, что соответствует последнему реальному циклу доставки.
     first_death = x_death[0]
-    return first_death.get('count', 0)
+    return first_death.get("count", 0)
 
 
 # без daemon=True, так как сами ждем join
 stop_event = threading.Event()
 
 # @idiomatic: simple way to create threads
-threads = [threading.Thread(target=consumer_worker, name=f"consumer-{i}") for i in range(10)]
+threads = [
+    threading.Thread(target=consumer_worker, name=f"consumer-{i}") for i in range(10)
+]
 for t in threads:
     t.start()
 

@@ -24,7 +24,7 @@ def test_inner_func_can_read_outer():
 def test_func_cant_write_global_without_global_statement():
     def func():
         # this assignment creates a local variable, so doesn't modify the global one
-        global_var = "new_global_var"
+        global_var = "new_global_var"  # noqa
 
     func()
 
@@ -35,12 +35,12 @@ def test_func_cant_write_global_without_global_statement():
 def test_func_can_write_global_with_global_statement():
     def func():
         global global_var
-        global_var = "new_global_var"
+        global_var = "new_global_var"  # noqa
 
     func()
 
     # changed
-    assert global_var == "new_global_var"
+    assert global_var == "new_global_var"  # noqa
 
 
 def test_func_cant_write_outer_without_nonlocal_statement():
@@ -48,7 +48,7 @@ def test_func_cant_write_outer_without_nonlocal_statement():
 
     def func():
         # this assignment creates a local variable, so doesn't modify the outer one
-        outer_var = "new_outer"
+        outer_var = "new_outer"  # noqa
 
     func()
 
@@ -61,7 +61,7 @@ def test_func_can_write_outer_with_nonlocal_statement():
 
     def func():
         nonlocal outer_var
-        outer_var = "new_outer"
+        outer_var = "new_outer"  # noqa
 
     func()
 

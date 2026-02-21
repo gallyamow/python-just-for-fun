@@ -24,7 +24,12 @@ def draw_circle(number, x, y):
         bit = (number >> bi) & 1
         color = COLOR_FILL if bit else OFF_COLOR
         zi = 4 - bi - 1
-        pygame.draw.circle(screen, color, (x, y + zi * (CIRCLE_RADIUS * 2 + CIRCLE_PADDING)), CIRCLE_RADIUS)
+        pygame.draw.circle(
+            screen,
+            color,
+            (x, y + zi * (CIRCLE_RADIUS * 2 + CIRCLE_PADDING)),
+            CIRCLE_RADIUS,
+        )
 
 
 def loop():
@@ -62,5 +67,5 @@ def loop():
         pygame.time.delay(1000)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     loop()

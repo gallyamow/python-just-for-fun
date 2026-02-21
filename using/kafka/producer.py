@@ -3,7 +3,6 @@ import threading
 import time
 from datetime import datetime
 from confluent_kafka import Producer
-import json
 
 
 def publish_worker():
@@ -13,28 +12,26 @@ def publish_worker():
     # - retry при ошибках
     # При превышении retry: сообщение считается FAILED: оно не записано в partition, offset не увеличился  consumer его никогда не увидит
     # Еще есть опция: delivery.timeout.ms - retry ещё есть, но timeout вышел
-    producer = Producer({
-        'bootstrap.servers': 'localhost:9092',
-        'acks': 'all',
-        'retries': 5,
-        "delivery.timeout.ms": 300000,
-        'linger.ms': 10,
-        'enable.idempotence': True,  # защита от дубликатов на producer-стороне
-    })
+    producer = Producer(
+        {
+            "bootstrap.servers": "localhost:9092",
+            "acks": "all",
+            "retries": 5,
+            "delivery.timeout.ms": 300000,
+            "linger.ms": 10,
+            "enable.idempotence": True,  # защита от дубликатов на producer-стороне
+        }
+    )
 
     i = 0
     try:
         while not stop_event.is_set():
-            message = {
-                "event_id": i,
-                "type": "time",
-                "val": datetime.now().isoformat()
-            }
+            message = {"event_id": i, "type": "time", "val": datetime.now().isoformat()}
 
             producer.produce(
-                topic='events',
-                value=json.dumps(message).encode(), # требуется в байты
-                on_delivery=delivery_report
+                topic="events",
+                value=json.dumps(message).encode(),  # требуется в байты
+                on_delivery=delivery_report,
             )
 
             # Для:

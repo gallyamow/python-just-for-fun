@@ -2,16 +2,16 @@ import numpy as np
 
 
 def test_bench_loop(benchmark):
-    result = benchmark(loop)
+    benchmark(loop)
 
 
 def test_bench_vector(benchmark):
-    result = benchmark(vector)
+    benchmark(vector)
 
 
 def vector():
     arr = np.arange(1, 1000)
-    return arr ** 2
+    return arr**2
 
 
 def loop():

@@ -9,20 +9,27 @@ dataclass — это декоратор из модуля dataclasses, кото�
 Особенность: поля - cls.
 Работает на eval.
 """
+
+
 @dataclass
 class Point:
     x: int
     y: int
+
 
 @dataclass(frozen=True)
 class ImmutablePoint:
     x: int
     y: int
 
+
 @dataclass
 class Person:
     name: str
-    password: str = field(repr=False)  # вот так можно указать не показывать это поле в __repr__
+    password: str = field(
+        repr=False
+    )  # вот так можно указать не показывать это поле в __repr__
+
 
 class BasicPoint:
     # Это поле класса
@@ -40,6 +47,7 @@ class BasicPoint:
     def __repr__(self):
         return f"BasicPoint({self.x}, {self.y})"
 
+
 def main():
     p1 = Point(1, 2)
     print(p1)
@@ -54,5 +62,6 @@ def main():
     bp = BasicPoint(1, 2)
     print(bp)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

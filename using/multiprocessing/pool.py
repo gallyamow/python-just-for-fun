@@ -54,5 +54,5 @@ def using_pool():
         print(result, result.get())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     using_pool()

@@ -2,14 +2,14 @@ import sys
 
 
 class SlotsPoint:
-    __slots__ = ('x', 'y')
+    __slots__ = ("x", "y")
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
     def __repr__(self):
-        return 'SlotsPoint(%r, %r)' % (self.x, self.y)
+        return "SlotsPoint(%r, %r)" % (self.x, self.y)
 
 
 class Point:
@@ -18,7 +18,7 @@ class Point:
         self.y = y
 
     def __repr__(self):
-        return 'Point(%r, %r)' % (self.x, self.y)
+        return "Point(%r, %r)" % (self.x, self.y)
 
 
 def main():
@@ -52,13 +52,13 @@ def total_size(obj, seen=None):
 
     if isinstance(obj, dict):
         size += sum(total_size(v, seen) + total_size(k, seen) for k, v in obj.items())
-    elif hasattr(obj, '__dict__'):
+    elif hasattr(obj, "__dict__"):
         size += total_size(obj.__dict__, seen)
-    elif hasattr(obj, '__slots__'):
+    elif hasattr(obj, "__slots__"):
         for slot in obj.__slots__:
             size += total_size(getattr(obj, slot), seen)
     return size
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

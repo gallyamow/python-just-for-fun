@@ -19,19 +19,23 @@ x_train = x_train.reshape(-1, 28 * 28)
 
 # Генератор — создаёт изображения
 def build_generator():
-    model = tf.keras.Sequential([
-        layers.Dense(128, activation="relu", input_dim=100),
-        layers.Dense(784, activation="sigmoid"),
-    ])
+    model = tf.keras.Sequential(
+        [
+            layers.Dense(128, activation="relu", input_dim=100),
+            layers.Dense(784, activation="sigmoid"),
+        ]
+    )
     return model
 
 
 # Дискриминатор — пытается определить, настоящее изображение или фейк.
 def build_discriminator():
-    model = tf.keras.Sequential([
-        layers.Dense(128, activation="relu", input_dim=784),
-        layers.Dense(1, activation="sigmoid"),
-    ])
+    model = tf.keras.Sequential(
+        [
+            layers.Dense(128, activation="relu", input_dim=784),
+            layers.Dense(1, activation="sigmoid"),
+        ]
+    )
     model.compile(optimizer="adam", loss="binary_crossentropy")
     return model
 
@@ -100,7 +104,9 @@ def train_gan(epochs=3000, batch_size=64):
 
         # Обучаем дискриминатор
         discriminator.trainable = True
-        discriminator.train_on_batch(x, y) # train_on_batch обновляет веса только на этом батче, а не на всей эпохе.
+        discriminator.train_on_batch(
+            x, y
+        )  # train_on_batch обновляет веса только на этом батче, а не на всей эпохе.
 
         # Обучаем генератор
         # Генератор снова получает случайный шум.

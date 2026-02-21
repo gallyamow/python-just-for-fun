@@ -47,10 +47,9 @@ notify() предполагает, что вы что-то изменили в �
 а вы уже разбудили потоки, которые прочтут “грязные” данные
 """
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cond = threading.Condition()
     ready = False
-
 
     def consumer():
         global ready
@@ -78,7 +77,6 @@ if __name__ == '__main__':
 
         print("Consumed!")
 
-
     def producer():
         global ready
         time.sleep(1)
@@ -86,7 +84,6 @@ if __name__ == '__main__':
         with cond:
             ready = True
             cond.notify_all()
-
 
     threading.Thread(target=consumer).start()
     threading.Thread(target=producer).start()

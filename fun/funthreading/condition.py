@@ -1,4 +1,3 @@
-import threading
 from typing import List
 
 from .spin_r_lock import SpinRLock
@@ -22,7 +21,8 @@ class Condition:
        2.5) Когда ему это удается, значит был notify. Значит поток может удалить себя из ожидающих (предварительно захватив RLock).
     3) Метод notify (notifyAll): предназначены, чтобы сообщить ожидающим, что условие поменялось и им надо начать работать.
     """
-    __slots__ = ('__lock', '__waiters', '__locks_count')
+
+    __slots__ = ("__lock", "__waiters", "__locks_count")
 
     def __init__(self):
         self.__lock = SpinRLock()

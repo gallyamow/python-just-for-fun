@@ -29,7 +29,9 @@ import cv2
 
 # Загружаем классификатор лица (входит в состав OpenCV)
 # (файл /Users/ramil/Projects/python-just-for-fun/venv/lib/python3.13/site-packages/cv2/data/haarcascade_frontalface_default.xml)
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+face_cascade = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+)
 # Открываем веб-камеру
 cap = cv2.VideoCapture(0)
 
@@ -45,14 +47,14 @@ while True:
     faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
 
     # Рисуем прямоугольники вокруг лиц
-    for (x, y, w, h) in faces:
+    for x, y, w, h in faces:
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     # Показываем результат
     cv2.imshow("Face detection", frame)
 
     # Нажмите «q» для выхода
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
 # Освобождаем ресурсы

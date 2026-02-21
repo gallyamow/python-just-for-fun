@@ -33,7 +33,7 @@ class Event:
     - нет happens-before - Если A happens-before B, то все эффекты A гарантированно видны в B
     """
 
-    __slots__ = ('__flag', '__cond')
+    __slots__ = ("__flag", "__cond")
 
     def __init__(self):
         self.__flag = False
@@ -61,8 +61,8 @@ class Event:
 
     def clear(self):
         """
-         Потоки которые заново вызывают wait будут заблокированы до set.
-         """
+        Потоки которые заново вызывают wait будут заблокированы до set.
+        """
         with self.__cond:
             self.__flag = False
 

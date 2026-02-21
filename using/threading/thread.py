@@ -32,6 +32,7 @@ enumerate()	Список всех активных потоков.
 Lock, RLock, Semaphore, Event, Condition — инструменты для безопасной работы с общими ресурсами.
 Thread.start() → запуск, Thread.join() → ожидание завершения.
 """
+
 import os
 import threading
 import time
@@ -48,8 +49,8 @@ def start_and_join():
     # В Python (x) — это просто x в скобках.
     # Чтобы сделать tuple из одного элемента, нужна запятая: (x,).
     # В args ожидается итерируемый объект, поэтому скобки и запятая нужны, иначе будет строка 'Thread-1' в скобках.
-    t1 = threading.Thread(target=target_func, args=('Thread-1',))
-    t2 = threading.Thread(target=target_func, args=('Thread-2',))
+    t1 = threading.Thread(target=target_func, args=("Thread-1",))
+    t2 = threading.Thread(target=target_func, args=("Thread-2",))
 
     t1.start()
     t2.start()
@@ -62,6 +63,6 @@ def start_and_join():
     print("all threads finished")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start_and_join()
     print()

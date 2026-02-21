@@ -22,12 +22,12 @@ class Semaphore:
     3) Поддерживает with-context.
     """
 
-    __slots__ = ('__counter', '__cond')
+    __slots__ = ("__counter", "__cond")
 
     def __init__(self, value=1):
         # 0 - быть разрешено
         if value < 0:
-            raise ValueError('n must be zero or more')
+            raise ValueError("n must be zero or more")
 
         self.__counter = value
         self.__cond = Condition()
@@ -60,7 +60,7 @@ class Semaphore:
 
     def release(self, n=1):
         if n < 1:
-            raise ValueError('n must be one or more')
+            raise ValueError("n must be one or more")
 
         with self.__cond:
             self.__counter += n

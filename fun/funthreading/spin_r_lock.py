@@ -22,7 +22,7 @@ class SpinRLock:
     #  - Нет __dict__, значит некоторые возможности рефлексии, сериализации, динамических патчей сложнее.
     #  - Например, pickle/JSON и некоторые фреймворки ожидают наличие __dict__.
     #  - Некоторые инструменты разработки (например, Django ORM) активно используют __dict__
-    __slots__ = ('__locked', '__owner', '__lock_count')
+    __slots__ = ("__locked", "__owner", "__lock_count")
 
     def __init__(self):
         # @idiomatic: typing
@@ -58,7 +58,7 @@ class SpinRLock:
         thread_id = threading.get_ident()
 
         if not self.__locked:
-            raise RuntimeError('SpinRLock is not acquired')
+            raise RuntimeError("SpinRLock is not acquired")
 
         if self.__owner != thread_id:
             raise RuntimeError("SpinRLock: lock can be released only by the owner")
@@ -88,7 +88,7 @@ class SpinRLock:
     def _release_save(self) -> tuple[int, int]:
         cnt = self.__lock_count
         if cnt == 0:
-            raise RuntimeError('cannot release un-acquired lock')
+            raise RuntimeError("cannot release un-acquired lock")
         owner = self.__owner
 
         self.__locked = False

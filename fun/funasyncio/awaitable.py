@@ -1,6 +1,7 @@
 """
 Упрощенная реализация coroutine (на основе генератора) и упрощенный event-loop для выполнения ее await.
 """
+
 from time import sleep
 from typing import Callable, Any
 
@@ -33,20 +34,20 @@ def run(gen):
         # 1) Стартует: получает Call через yield
         # (coroutine priming)
         call = next(gen)
-        print('received call:', call)
+        print("received call:", call)
 
         # 2) Прокручивает генератор до конца
         while True:
             # 3) Выполняет Call синхронно
             # (аналог await)
             val = call()
-            print('awaited result:', val)
+            print("awaited result:", val)
 
             # 4) Отправляет результат обратно через send()
             # 5) ВАЖНО: И берем новый call
             # (продолжаем coroutine)
             call = gen.send(val)
-            print('received call:', call)
+            print("received call:", call)
     except StopIteration as e:
         # Возвращает финальный результат через StopIteration.value
         return e.value
@@ -76,7 +77,6 @@ def async_sum_of_squares(x: int, y: int):
     return part1 + part2
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     result = run(async_sum_of_squares(2, 3))
     print(f"result = {result}")
-

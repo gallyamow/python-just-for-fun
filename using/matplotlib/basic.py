@@ -9,6 +9,7 @@ matplotlib — это самая популярная библиотека Pytho
 - Сохранение графиков в файлы различных форматов (PNG, JPG, PDF).
 - Гибкая настройка внешнего вида.
 """
+
 import random
 import matplotlib
 import numpy as np
@@ -78,7 +79,7 @@ def plot_3d_surface():
     x, y = np.meshgrid(x, y)
 
     # Функция Z = sin( sqrt(x²+y²) )
-    z = np.sin(np.sqrt(x ** 2 + y ** 2))
+    z = np.sin(np.sqrt(x**2 + y**2))
 
     # Рисуем 3D поверхность
     ax.plot_surface(x, y, z, cmap="viridis", edgecolor="none")

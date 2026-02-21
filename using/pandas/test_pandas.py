@@ -21,8 +21,8 @@ def test_data_types_series():
      - Данные — сами значения (числа, строки, булевы значения и т.д.)
      - Индексы — метки для каждой позиции, по которым можно быстро обращаться к элементам
     """
-    s = pd.Series([10, 20, 30], index=['a', 'b', 'c'])
-    assert list(s.index) == ['a', 'b', 'c']
+    s = pd.Series([10, 20, 30], index=["a", "b", "c"])
+    assert list(s.index) == ["a", "b", "c"]
 
     # shape возвращает кортеж с одной цифрой, которая показывает количество элементов:
     assert s.shape == (3,)
@@ -30,7 +30,7 @@ def test_data_types_series():
     # Доступ по позиции (нельзя просто s[0] = To access a value by position, use `ser.iloc[pos]`)
     assert s.iloc[0] == 10
     # Доступ по индексу
-    assert s['a'] == 10
+    assert s["a"] == 10
 
     # Можно делать срезы.
     # Срезы являются копиями
@@ -38,14 +38,14 @@ def test_data_types_series():
     assert sl.shape == (2,)
 
     # Можно делать срезы по индексу
-    sl = s['a':'b']
+    sl = s["a":"b"]
     assert sl.shape == (2,)
 
     # Можно делать арифметические операции сразу со срезом
     sl = sl + 100
-    assert sl['a'] == 110
+    assert sl["a"] == 110
     # Так как срез это копия, то оригинальный Series не изменился
-    assert s['a'] == 10
+    assert s["a"] == 10
 
     # Можно делать фильтрацию
     f = s[s > 20]
@@ -74,29 +74,33 @@ def test_data_types_data_frame():
 
     # 1. Из словаря списков (классический способ)
     # Будут 2 колонки A и B с 3 строками
-    df1 = pd.DataFrame({
-        'A': [1, 2, 3],
-        'B': [4, 5, 6]
-    })
+    df1 = pd.DataFrame({"A": [1, 2, 3], "B": [4, 5, 6]})
     assert df1.shape == (3, 2)
 
     # 2. Из списка словарей.
     # Будут также 2 колонки A и B с 3 строками.
     # Тут каждая строка передается отдельно.
-    df2 = pd.DataFrame([
-        {'A': 1, 'B': 4},
-        {'A': 2, 'B': 5},
-        {'A': 3, 'B': 6},
-    ])
+    df2 = pd.DataFrame(
+        [
+            {"A": 1, "B": 4},
+            {"A": 2, "B": 5},
+            {"A": 3, "B": 6},
+        ]
+    )
     assert df2.shape == (3, 2)
 
     # 3. Из NumPy массива
     # @idiomatic: local import
     import numpy as np
-    pd.DataFrame(np.random.randn(3, 2), columns=['x', 'y'])
+
+    pd.DataFrame(np.random.randn(3, 2), columns=["x", "y"])
 
     # Создание DataFrame из словаря
-    data = {'Имя': ['Аня', 'Борис', 'Вера'], 'Возраст': [25, 30, 22], 'Пол': ['Ж', 'М', 'Ж']}
+    data = {
+        "Имя": ["Аня", "Борис", "Вера"],
+        "Возраст": [25, 30, 22],
+        "Пол": ["Ж", "М", "Ж"],
+    }
     df = pd.DataFrame(data)
 
     """
@@ -127,89 +131,91 @@ def test_data_types_data_frame():
 
     # 0) Индекс
     # Можно установить индекс, тогда получится что колонка с именами является уникальной и данные относятся к имени
-    idf = df.set_index('Имя')
-    assert list(idf.loc['Аня']) == [25, 'Ж']  # тут индексы - уже имена, а имя туда уже не входит
-    assert list(idf.iloc[0]) == [25, 'Ж']  # по номеру строки
+    idf = df.set_index("Имя")
+    assert list(idf.loc["Аня"]) == [
+        25,
+        "Ж",
+    ]  # тут индексы - уже имена, а имя туда уже не входит
+    assert list(idf.iloc[0]) == [25, "Ж"]  # по номеру строки
 
     # 1) Доступ к колонкам
     # Можно получить всю колонку в виде Series
-    assert list(df['Имя']) == ['Аня', 'Борис', 'Вера']
+    assert list(df["Имя"]) == ["Аня", "Борис", "Вера"]
 
     # Можно и несколько, тогда результатом будет DataFrame, а аргументами будет list
-    df2 = df[['Имя', 'Возраст']]
+    df2 = df[["Имя", "Возраст"]]
     assert df2.shape == (3, 2)
 
     # 2) Доступ к строкам
     # Доступ к строке по индексу (тут индексы - числа)
-    assert list(df.loc[0]) == ['Аня', 25, 'Ж']
+    assert list(df.loc[0]) == ["Аня", 25, "Ж"]
     # по номеру строки
-    assert list(df.iloc[0]) == ['Аня', 25, 'Ж']
+    assert list(df.iloc[0]) == ["Аня", 25, "Ж"]
 
     # 3) Доступ к ячейкам
-    assert df.loc[1, 'Возраст'] == 30
+    assert df.loc[1, "Возраст"] == 30
     assert df.iloc[1, 1] == 30
 
     # 4) Фильтрация
     # Будут строки 2 строки с теми же 3 столбцами
-    assert df[df['Возраст'] > 24].shape == (2, 3)
+    assert df[df["Возраст"] > 24].shape == (2, 3)
     # На самом деле мы фильтруем Series и далее из dataFrame берем нужные строки
-    s = df['Возраст'] > 24
+    s = df["Возраст"] > 24
     assert isinstance(s, pd.Series)
 
     # 5) Изменение
     # Добавим колонку
-    df['Город'] = ['Москва', 'СПб', 'Казань']
+    df["Город"] = ["Москва", "СПб", "Казань"]
     assert df.shape == (3, 4)
     # Поменяем возраст в первой строке
-    df.loc[0, 'Возраст'] = 26
+    df.loc[0, "Возраст"] = 26
 
     # 6) Сортировка
-    df = df.sort_values(by='Возраст', ascending=False)
+    df = df.sort_values(by="Возраст", ascending=False)
 
     # 7) Объединение и слияние DataFrame
     # 7.1) Вертикальное - добавятся новые строки
     # Если индексы не совпадают => появляются NaN - в df2 нет колонки "Пол", то она добавится как NaN, для значений df2
-    df1 = pd.DataFrame({
-        'Имя': ['Аня', 'Борис'],
-        'Возраст': [25, 30],
-        'Пол': ['Ж', 'М']
-    })
-    df2 = pd.DataFrame({
-        'Имя': ['Вера', 'Гоша'],
-        'Возраст': [22, 28]
-    })
+    df1 = pd.DataFrame(
+        {"Имя": ["Аня", "Борис"], "Возраст": [25, 30], "Пол": ["Ж", "М"]}
+    )
+    df2 = pd.DataFrame({"Имя": ["Вера", "Гоша"], "Возраст": [22, 28]})
 
     con = pd.concat([df1, df2])
     assert con.shape == (4, 3)
 
     # 7.2) Горизонтальное - колонки буду расположены рядом двигаясь по ширине
-    df1 = pd.DataFrame({'A': [1, 2, 3]})
-    df2 = pd.DataFrame({'B': [4, 5, 6]})
+    df1 = pd.DataFrame({"A": [1, 2, 3]})
+    df2 = pd.DataFrame({"B": [4, 5, 6]})
 
     con = pd.concat([df1, df2], axis=1)
     assert con.shape == (3, 2)
 
     # как sql-join
-    df1 = pd.DataFrame({'product_id': [1, 2, 3], 'price': [400, 500, 600]})
-    df2 = pd.DataFrame({'product_id': [1, 2, 3], 'name': ['bread', 'water', 'gasoline']})
+    df1 = pd.DataFrame({"product_id": [1, 2, 3], "price": [400, 500, 600]})
+    df2 = pd.DataFrame(
+        {"product_id": [1, 2, 3], "name": ["bread", "water", "gasoline"]}
+    )
     join = pd.merge(df1, df2)
     assert join.shape == (3, 3)
 
     # 8) Группировка
     # MEAN(Возраст) BY Город
-    df = pd.DataFrame({
-        'Город': ['Москва', 'СПб', 'Москва', 'Казань', 'СПб', 'Москва'],
-        'Возраст': [25, 30, 22, 28, 35, 40],
-        'Зарплата': [100, 120, 90, 110, 130, 150]
-    })
+    df = pd.DataFrame(
+        {
+            "Город": ["Москва", "СПб", "Москва", "Казань", "СПб", "Москва"],
+            "Возраст": [25, 30, 22, 28, 35, 40],
+            "Зарплата": [100, 120, 90, 110, 130, 150],
+        }
+    )
     # grouped — это объект, который умеет выполнять агрегирующие функции.
-    grouped = df.groupby('Город')
+    grouped = df.groupby("Город")
 
     # Средний возраст по городам
-    assert grouped['Возраст'].mean().shape == (3,)
+    assert grouped["Возраст"].mean().shape == (3,)
 
     # Несколько агрегирующих функций
-    assert grouped['Возраст'].agg(['mean', 'max', 'min']).shape == (3,3)
+    assert grouped["Возраст"].agg(["mean", "max", "min"]).shape == (3, 3)
 
     # 9) Срезы
     # У DataFrame срез может быть копией, но иногда Pandas возвращает view (зависит от операции и версии).
@@ -218,10 +224,9 @@ def test_data_types_data_frame():
     assert df.iloc[1:3].shape == (2, 3)
     assert df.loc[1:2].shape == (2, 3)  # здесь индекс это числа
     # Срез по колонкам
-    assert  df[['Возраст', 'Город']].shape == (6,2)
-
+    assert df[["Возраст", "Город"]].shape == (6, 2)
 
 
 def ptest_read_csv():
-    df = pd.read_csv('data.csv')
+    df = pd.read_csv("data.csv")
     assert df.shape == (100, 10)

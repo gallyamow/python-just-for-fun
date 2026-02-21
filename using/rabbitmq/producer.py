@@ -6,6 +6,7 @@ from rabbit.channel import get_channel
 from rabbit.topology import setup_topology
 import pika
 
+
 # Гарантии доставки:
 # 1) at most once - если используется auto-ack и consumer падает после получения либо сеть после получения
 # 2) at least once - если manual ack - basic.ack (чаще всего на проде). Если consumer падает - то возвращается в очередь.
@@ -19,11 +20,7 @@ def publish_worker():
     i = 0
     try:
         while not stop_event.is_set():
-            message = {
-                "event_id": i,
-                "type": "time",
-                "val": datetime.now().isoformat()
-            }
+            message = {"event_id": i, "type": "time", "val": datetime.now().isoformat()}
 
             chan.basic_publish(
                 exchange="main.exchange",
@@ -31,7 +28,7 @@ def publish_worker():
                 body=json.dumps(message),
                 properties=pika.BasicProperties(
                     delivery_mode=2  # persistent
-                )
+                ),
             )
 
             print("Sent:", message)

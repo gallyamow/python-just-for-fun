@@ -4,6 +4,7 @@ Process — это объект, который представляет отд�
 
 Если указать p.daemon = True, то процесс завершится вместе с главным процессом
 """
+
 import os
 import time
 from datetime import datetime

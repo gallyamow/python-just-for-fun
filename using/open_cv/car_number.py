@@ -16,9 +16,9 @@ OpenCV — это библиотека компьютерного зрения �
 Библиотека может визуализировать результат в отдельных окнах и работать с клавиатурой (используя HighGUI => GUI системы).
 """
 
-source = cv2.imread('car.jpg')
+source = cv2.imread("car.jpg")
 if source is None:
-    print('Failed to open image')
+    print("Failed to open image")
     exit()
 
 source = imutils.resize(source, width=600)
@@ -81,12 +81,12 @@ for c in cnts:
         break
 
 # Маска под номер
-masked = cv2.drawContours(source.copy(), [plate_contour], -1, (0,0,255), 3)
+masked = cv2.drawContours(source.copy(), [plate_contour], -1, (0, 0, 255), 3)
 cv2.imshow("Masked", masked)
 
 # Вырезаем прямоугольник с номером
 x, y, w, h = cv2.boundingRect(plate_contour)
-cut = prepared[y:y+h, x:x+w]
+cut = prepared[y : y + h, x : x + w]
 
 cv2.imshow("Cut", cut)
 
@@ -97,7 +97,7 @@ pytesseract.image_to_string - распознавание текста на из�
  - config='--psm 8' — конфигурация Tesseract: --psm (Page Segmentation Mode) управляет способом сегментации текста. 
    8 означает: «одна строка текста». Идеально для автомобильных номеров, потому что они находятся в одной линии.
 """
-text = pytesseract.image_to_string(cut, config='--psm 8')
+text = pytesseract.image_to_string(cut, config="--psm 8")
 print("Распознанный номер:", text)
 
 cv2.waitKey(0)

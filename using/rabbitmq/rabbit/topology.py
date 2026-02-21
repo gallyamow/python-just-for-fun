@@ -1,5 +1,6 @@
 import pika
 
+
 # Требования:
 # 1) рассылка событий всем consumers и ожидание подтверждения от всех.
 # 2) в случае если кто-то подтверждает пересылаем глобально всем.
@@ -8,23 +9,17 @@ def setup_topology(chan: pika.adapters.blocking_connection.BlockingChannel):
     # Главный обменник рассылает события на обработку во все consumers.
     # Используем fanout, по требованиям.
     chan.exchange_declare(
-        exchange="main.exchange",
-        exchange_type="fanout",
-        durable=True
+        exchange="main.exchange", exchange_type="fanout", durable=True
     )
 
     # Retry-обменник для повторов с ttl
     chan.exchange_declare(
-        exchange="retry.exchange",
-        exchange_type="direct",
-        durable=True
+        exchange="retry.exchange", exchange_type="direct", durable=True
     )
 
     # Parking-обменник для пересылки окончательно failed
     chan.exchange_declare(
-        exchange="parking.exchange",
-        exchange_type="direct",
-        durable=True
+        exchange="parking.exchange", exchange_type="direct", durable=True
     )
 
     # Главная очередь
@@ -41,7 +36,7 @@ def setup_topology(chan: pika.adapters.blocking_connection.BlockingChannel):
             # т.е. retry.exchange -> retry.queue
             "x-dead-letter-exchange": "retry.exchange",
             "x-dead-letter-routing-key": "retry",
-        }
+        },
     )
 
     # Retry-очередь
@@ -55,30 +50,17 @@ def setup_topology(chan: pika.adapters.blocking_connection.BlockingChannel):
             "x-message-ttl": 10000,
             "x-dead-letter-exchange": "main.exchange",
             "x-dead-letter-routing-key": "main",
-        }
+        },
     )
 
     # Parking-очередь для пересылки окончательно failed
-    chan.queue_declare(
-        queue="parking.queue",
-        durable=True
-    )
+    chan.queue_declare(queue="parking.queue", durable=True)
 
     # Привязка queue к exchanges
-    chan.queue_bind(
-        exchange="main.exchange",
-        queue="main.queue",
-        routing_key="main"
-    )
+    chan.queue_bind(exchange="main.exchange", queue="main.queue", routing_key="main")
+
+    chan.queue_bind(exchange="retry.exchange", queue="retry.queue", routing_key="retry")
 
     chan.queue_bind(
-        exchange="retry.exchange",
-        queue="retry.queue",
-        routing_key="retry"
-    )
-
-    chan.queue_bind(
-        exchange="parking.exchange",
-        queue="parking.queue",
-        routing_key="parking"
+        exchange="parking.exchange", queue="parking.queue", routing_key="parking"
     )

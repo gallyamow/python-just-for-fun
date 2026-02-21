@@ -93,6 +93,7 @@ class TodoItem(BaseModel):
     8. По умолчанию — любое значение (когда нужно отключит строгую типизацию)
         data: Any
     """
+
     item_id: UUID
     title: str
     description: Union[str, None] = None
@@ -108,8 +109,7 @@ def index(request: Request) -> List[TodoItem]:
     Теперь возвращаем ответ в виде html.
     """
     return templates.TemplateResponse(
-        "index.html",
-        {"request": request, "todos": list(storage.values())}
+        "index.html", {"request": request, "todos": list(storage.values())}
     )
 
 
@@ -119,7 +119,7 @@ def create_item(title: str = Form(...), description: str = Form(None)):
         item_id=uuid4(),
         title=title,
         description=description,
-        created_at=datetime.datetime.now()
+        created_at=datetime.datetime.now(),
     )
     storage[item.item_id] = item
     return RedirectResponse(url="/", status_code=303)
@@ -128,7 +128,7 @@ def create_item(title: str = Form(...), description: str = Form(None)):
 @app.get("/items/{item_id}")
 def read_item(item_id: UUID) -> TodoItem:
     if item_id not in storage:
-        raise HTTPException(404, detail='Item not found.')
+        raise HTTPException(404, detail="Item not found.")
 
     return storage[item_id]
 
@@ -136,7 +136,7 @@ def read_item(item_id: UUID) -> TodoItem:
 @app.put("/items/{item_id}")
 def update_item(item_id: UUID, item: TodoItem) -> TodoItem:
     if item_id not in storage:
-        raise HTTPException(404, detail='Item not found.')
+        raise HTTPException(404, detail="Item not found.")
 
     storage[item_id] = item
     return item
@@ -145,6 +145,6 @@ def update_item(item_id: UUID, item: TodoItem) -> TodoItem:
 @app.delete("/todos/{item_id}")
 def delete_todo(item_id: UUID) -> None:
     if item_id not in storage:
-        raise HTTPException(404, detail='Item not found.')
+        raise HTTPException(404, detail="Item not found.")
 
     del storage[item_id]

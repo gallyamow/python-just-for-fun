@@ -12,7 +12,7 @@ def op(n: int) -> int:
     return n * n
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     q = Queue()
 
     print("Way 1: using submit + blocking future.result")

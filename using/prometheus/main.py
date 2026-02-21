@@ -1,6 +1,5 @@
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from pydantic import BaseModel
 from datetime import datetime
 from otel import setup_otel
@@ -117,6 +116,7 @@ def traced_time() -> TimeOut:
     with tracer.start_as_current_span("traced_time"):
         pass
     return TimeOut(time=datetime.now())
+
 
 """
 Не требуется, так как используем MeterProvider в otel.

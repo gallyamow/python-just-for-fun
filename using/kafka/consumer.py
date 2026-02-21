@@ -2,7 +2,6 @@ import json
 import threading
 import random
 from confluent_kafka import Consumer
-import json
 
 conf = {
     "bootstrap.servers": "localhost:9092",
@@ -11,7 +10,7 @@ conf = {
     # обязательно отключаем autocommit
     "enable.auto.commit": False,
     # Увеличил лимиты. Но правильный способ: pool в одном потоке, затем обработка результата в worker pool
-    "max.poll.interval.ms": 300000
+    "max.poll.interval.ms": 300000,
 }
 
 
@@ -24,7 +23,7 @@ def consumer_worker():
         # offset ещё не committed
         # другой consumer начнёт читать с прошлого offset
         # будут дубли
-        on_revoke=on_revoke
+        on_revoke=on_revoke,
     )
 
     try:
@@ -60,7 +59,7 @@ def consumer_worker():
 
 def handle_event(payload) -> bool:
     if random.random() < 0.3:
-        raise Exception('something gone wrong')
+        raise Exception("something gone wrong")
     print(payload)
     return True
 
@@ -76,7 +75,7 @@ stop_event = threading.Event()
 # 10 потоков ≠ 10x throughput
 # максимум = число partition
 # если partitions = 3, то 7 потоков будут idle
-t = threading.Thread(target=consumer_worker, name=f"consumer-main")
+t = threading.Thread(target=consumer_worker, name="consumer-main")
 t.start()
 
 # @idiomatic: graceful shutdown + ctrl+c handling + ctrl+d (сигнал ввода больше не будет)

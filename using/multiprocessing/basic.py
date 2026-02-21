@@ -16,9 +16,11 @@ Pool	пул процессов для параллельного выполне�
 Память	Каждый процесс отдельная память	        Общая память, но GIL ограничивает CPU
 Сложность	Сложнее, нужен обмен данными	    Легче, управление через await
 """
+
 import multiprocessing
 import os
 import time
+
 
 def worker(name):
     print(f"Worker {name}, PID: {os.getpid()}")
@@ -56,6 +58,7 @@ def simple():
     p1.join()
     p2.join()
 
+
 def communication():
     q = multiprocessing.Queue()
     p1 = multiprocessing.Process(target=producer, args=(q,))
@@ -67,7 +70,7 @@ def communication():
     p2.join()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Просто 2 процесса
     print("SIMPLE")
     simple()

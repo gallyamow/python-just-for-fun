@@ -13,7 +13,7 @@ class Barrier:
     - Когда последний поток достигает барьера — все одновременно продолжают выполнение.
     """
 
-    __slots__=('__parties', '__action', '__timeout')
+    __slots__ = ("__parties", "__action", "__timeout")
 
     def __init__(self, parties, action=None, timeout=None):
         self.__parties = parties

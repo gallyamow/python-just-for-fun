@@ -4,6 +4,7 @@ import time
 from .spin_lock import SpinLock as FunLock
 from threading import Lock as NativeLock
 
+
 def test_counter_of_fun():
     lock = FunLock()
     counter_with(lock)
@@ -70,21 +71,21 @@ def timeout(lock):
         now = time.time()
         since = now - last
         last = now
-        assert acquired == False
+        assert not acquired
         assert 0.19 < since < 0.25
 
         acquired = lock.acquire(timeout=0.2)
         now = time.time()
         since = now - last
         last = now
-        assert acquired == False
+        assert not acquired
         assert 0.19 < since < 0.25
 
         time.sleep(0.2)
 
         # greedy_worker lock should've been released, so it's time to acquire
         acquired = lock.acquire(timeout=0.2)
-        assert acquired == True
+        assert acquired
 
     t1 = threading.Thread(target=greedy_worker)
     t2 = threading.Thread(target=worker)
@@ -110,14 +111,14 @@ def non_blocking(lock):
         now = time.time()
         since = now - last
         last = now
-        assert acquired == False
+        assert not acquired
         assert 0.0 < since < 0.02
 
         acquired = lock.acquire(blocking=False)
         now = time.time()
         since = now - last
         last = now
-        assert acquired == False
+        assert not acquired
         assert 0.0 < since < 0.02
 
     t1 = threading.Thread(target=greedy_worker)

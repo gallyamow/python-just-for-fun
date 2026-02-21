@@ -5,7 +5,8 @@ class SpinLock:
     """
     Аналог threading.Lock, реализованный через активное ожидание (spinlock).
     """
-    __slots__ = '__locked'
+
+    __slots__ = "__locked"
 
     def __init__(self):
         self.__locked: bool = False

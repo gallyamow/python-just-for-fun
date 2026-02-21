@@ -5,6 +5,7 @@ Coroutine - async функция. При вызове не выполняетс�
 Await можно запустить только из другой async-функции, поэтому для запуска из обычной нужен asyncio.run().
 """
 
+
 async def async_sum(x, y):
     await asyncio.sleep(0.1)
     return x + y
@@ -21,6 +22,7 @@ async def async_sum_all(*args):
 # @asyncio.coroutine
 # def old_style():
 #     yield from asyncio.sleep(1)
+
 
 async def download_file(url):
     print(f"Start downloading {url}...")
@@ -63,11 +65,13 @@ async def long_cancelable_operation():
         print("Correct: Time to cancel.")
         raise  # важно пробросить дальше
 
+
 async def download_files_with_semaphore(urls):
     sem = asyncio.Semaphore(1)
     wrapped_tasks = [download_file_with_semaphore(sem, u) for u in urls]
 
     return await asyncio.gather(*wrapped_tasks)
+
 
 async def download_file_with_semaphore(sem, url):
     async with sem:
@@ -101,27 +105,23 @@ def main():
 
     # we need runner
     sum2 = asyncio.run(c)
-    print(f'Sum: {sum2}')
+    print(f"Sum: {sum2}")
 
     sum_all = asyncio.run(async_sum_all([1, 2], [3, 4]))
-    print(f'Sum all: {sum_all}')
+    print(f"Sum all: {sum_all}")
 
     print("GATHER")
     # gather
     tasks = [
         download_file("https://example1.com"),
         download_file("https://example2.org"),
-        download_file("https://example3.org")
+        download_file("https://example3.org"),
     ]
     asyncio.run(download_files(tasks))
 
     print("SEMAPHORE")
     # gather + semaphore
-    urls = [
-        "https://example1.com",
-        "https://example2.org",
-        "https://example3.org"
-    ]
+    urls = ["https://example1.com", "https://example2.org", "https://example3.org"]
     asyncio.run(download_files_with_semaphore(urls))
 
     print("FUTURE")
@@ -132,5 +132,5 @@ def main():
     asyncio.run(usage_wait_for())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -56,8 +56,9 @@ def non_reentrant_lock():
         for _ in range(1000):
             non_locked_counter += 1
 
-    threads = ([threading.Thread(target=locked_increment) for _ in range(10)]
-               + [threading.Thread(target=non_locked_increment) for _ in range(10)])
+    threads = [threading.Thread(target=locked_increment) for _ in range(10)] + [
+        threading.Thread(target=non_locked_increment) for _ in range(10)
+    ]
 
     for t in threads:
         t.start()
@@ -96,13 +97,14 @@ def reentrant_lock():
     thread.start()
     thread.join()
 
+
 def target_func(name):
     print(f"Target {name}, PID: {os.getpid()}", flush=True)
     t = random.random()
     time.sleep(t)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     non_reentrant_lock()
     print()
     reentrant_lock()

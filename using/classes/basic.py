@@ -1,6 +1,7 @@
 from abc import abstractmethod, ABC
 from functools import singledispatchmethod
 
+
 class Animal:
     # Поля класса: тут важен знак "="
     LEGS_COUNT = 4  # uppercase указывает что это константа (соглашение)
@@ -130,5 +131,5 @@ def main():
     print(bf.fly())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

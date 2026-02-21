@@ -17,7 +17,7 @@ import time
 Захватывает Cond.Lock
 Cond.notify_all
 """
-if __name__ == '__main__':
+if __name__ == "__main__":
     event = threading.Event()
 
     def waiter():
@@ -26,13 +26,11 @@ if __name__ == '__main__':
         event.wait()
         print("Event received!", flush=True)
 
-
     def setter():
         time.sleep(2)
         # Устанавливает интервальный флаг в True.
         # Действует на все потоки сразу.
         event.set()
-
 
     threading.Thread(target=waiter).start()
     threading.Thread(target=waiter).start()
