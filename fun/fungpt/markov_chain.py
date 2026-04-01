@@ -1,5 +1,5 @@
 import random
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 """
 Цепь Маркова — последовательность случайных событий, где вероятность наступления каждого события зависит только от 
@@ -57,7 +57,7 @@ Vt+1 = Vt * P
 а цепочка разных. Матрицы меняют в ML, чтобы учесть сезонность, или какие то внешние факторы.
 """
 names = [line.lower().strip() for line in open('input.txt') if line.strip()]
-# random.shuffle(names)
+random.shuffle(names)
 print(f"num docs: {len(names)}")
 
 """
@@ -65,11 +65,12 @@ print(f"num docs: {len(names)}")
 (можно было назвать window)
 """
 order = 2
+temperature = 0.8
 
 START = '^'
 END = '$'
 
-def learn() -> dict[str, list[str]]:
+def train() -> dict[str, list[str]]:
     # Обученная модель
     res = defaultdict(list)
 
@@ -90,7 +91,17 @@ def learn() -> dict[str, list[str]]:
 
     return res
 
-model: dict[str, list[str]] = learn()
+model: dict[str, list[str]] = train()
+
+def sample_with_temp(counter, temp=1.0):
+    items = list(counter.items())
+    chars = [c for c, _ in items]
+    weights = [w for _, w in items]
+
+    # применяем температуру
+    weights = [w ** (1 / temp) for w in weights]
+
+    return random.choices(chars, weights=weights)[0]
 
 def gen(min_len=3, max_len=10):
     while True:
@@ -120,8 +131,19 @@ def gen(min_len=3, max_len=10):
             Тогда Vt+1 = Vt * P, и мы бы получили новый вектор, который можно было бы интерпретировать как вероятности 
             для всех букв. 
             Но так как мы не храним вероятности, а просто список возможных букв, то выбираем случайно из этого списка.
+            
+            Тут весы регулируются за счет множественного повтора частотных некоторых букв. Но такой подход - расходует память,
+            и не дает влиять на результат (например делать температуру).
             """
-            next_char = random.choice(next_chars)
+            # next_char = random.choice(next_chars)
+
+            counter = Counter(next_chars)
+            chars, weights = zip(*counter.items())
+            # next_char = random.choices(chars, weights=weights)[0]
+
+            # Вариант с температурой
+            next_char = sample_with_temp(counter, temperature)
+
             if next_char == END:
                 break
 
@@ -138,9 +160,13 @@ def gen(min_len=3, max_len=10):
 
 # Результат
 max_length = max(len(s) for s in names)
-min_length = min(len(s) for s in names)
-print(f'{min_length=}, {max_length=}')
+print(f'{max_length=}')
 
 for _ in range(10):
-    new_name = gen(min_len=6, max_len=max_length)
-    print(gen())
+    new_name = gen(min_len=4, max_len=max_length)
+
+    # Убираем попадания в dataset
+    if new_name in names:
+        continue
+
+    print(new_name)
