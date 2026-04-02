@@ -5,6 +5,10 @@ Everything else is just efficiency.
 
 @karpathy
 """
+
+"""
+@see https://habr.com/ru/articles/996404/
+"""
 import os  # os.path.exists
 import math  # math.log, math.exp
 import random  # random.seed, random.choices, random.gauss, random.shuffle
